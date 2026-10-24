@@ -1,0 +1,17 @@
+# CPU smoke test with a tiny random model (tests/make_tiny_model.py). Checks plumbing only, not numbers.
+run_name: test_cpu
+model: tests/tiny_llama
+revision: null
+fallback_models: []
+dtype: float32
+attn: sdpa
+attn_patch: true            # on CPU the restricted kernels are unavailable, so the patch exercises its fallback
+vram_fraction: null
+device: cpu
+seed: 0
+model_check: true
+text_file: tests/tiny_text.json
+sweep: {contexts: [256, 512, 1024], batches: [1, 2], decode_tokens: 6, trials: 2, max_minutes: 5}
+bandwidth: {size_mb: 16, iters: 2}
+needle: {contexts: [256, 512], depths: [0.0, 0.5, 1.0], samples: 2, max_new_tokens: 8, max_minutes: 5}
+ppl: {lengths: [256, 512], segments: 2, chunk: 128, bos: true, max_minutes: 5}

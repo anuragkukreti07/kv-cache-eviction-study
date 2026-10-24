@@ -1,0 +1,39 @@
+# Baseline (unmodified FP16 full cache) on Llama-3.2-1B-Instruct, RTX 5060 8 GB
+run_name: laptop_rtx5060_1b   # results go to results/<run_name> (quick runs: results/<run_name>_quick)
+model: unsloth/Llama-3.2-1B-Instruct   # fixed for every comparison in the study (Unsloth-hosted Llama 3.2 1B Instruct)
+revision: null              # null = resolve once and pin via model_revision.lock; or paste a full commit SHA
+fallback_models: []         # deliberately empty: never silently switch models
+dtype: float16
+attn: sdpa
+attn_patch: true            # keep SDPA on flash/mem-efficient kernels for GQA (see kvstudy/attention.py)
+vram_fraction: 0.90         # allocator cap -> clean OOM instead of Windows spilling into shared system memory
+device: cuda
+seed: 0
+
+sweep:                      # KV growth curve + latency (guide Step 3)
+  contexts: [1024, 2048, 4096, 8192, 16384]
+  batches: [1, 2, 4, 8]
+  decode_tokens: 32
+  trials: 3
+
+bandwidth:
+  size_mb: 1024
+  iters: 20
+
+needle:                     # full-cache quality reference (guide Step 4)
+  contexts: [1024, 2048, 4096, 8192, 16384]
+  depths: [0.0, 0.25, 0.5, 0.75, 1.0]
+  samples: 10               # guide says 20-30 for final numbers; 10 is enough for a baseline
+  max_new_tokens: 20
+
+ppl:                        # chunked perplexity (same harness the eviction caches will use)
+  lengths: [2048, 4096]
+  segments: 8
+  chunk: 256
+  bos: false                # the original laptop run; server_3b uses true (see scripts/s4_ppl.py)
+
+quick:                      # used with --quick (smoke test, ~3 min)
+  sweep: {contexts: [1024, 2048], batches: [1, 2], decode_tokens: 8, trials: 1}
+  bandwidth: {size_mb: 256, iters: 5}
+  needle: {contexts: [1024, 2048], depths: [0.0, 0.5, 1.0], samples: 2, max_new_tokens: 20}
+  ppl: {lengths: [1024], segments: 2, chunk: 256}

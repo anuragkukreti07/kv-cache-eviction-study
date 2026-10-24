@@ -1,0 +1,10 @@
+# PyTorch is installed separately by the setup script (CUDA 12.8 wheel, needed for RTX 50-series / Blackwell, sm_120).
+# Versions pinned to the ones the laptop baseline ran with, so laptop and server results are comparable.
+transformers==5.19.0
+datasets
+accelerate
+huggingface_hub
+numpy
+pandas
+matplotlib
+pyyaml

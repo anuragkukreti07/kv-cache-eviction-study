@@ -1,0 +1,46 @@
+# Baseline (unmodified FP16 full cache) on Llama-3.2-3B-Instruct, college GPU (RTX PRO 5000 48 GB / L40S / A100)
+# This is the final-model baseline from the proposal. Every stage has a time cap so the whole run fits a 2-hour slot.
+run_name: server_3b
+model: unsloth/Llama-3.2-3B-Instruct   # same un-gated Unsloth mirror family as the 1B laptop baseline
+revision: null              # resolved once by setup_server.sh and pinned in model_revision.lock
+fallback_models: []         # never silently switch models
+dtype: float16              # same as the laptop run; s0 checks for inf/NaN and tells you to switch to bfloat16 if needed
+attn: sdpa
+attn_patch: true            # keep SDPA on flash/mem-efficient kernels for GQA (see kvstudy/attention.py)
+vram_fraction: 0.90         # allocator cap -> clean, reproducible out-of-memory point
+device: cuda
+seed: 0
+model_check: true           # stage 0 loads the model and answers one 2K needle before anything long runs
+
+# Expected memory (3B: 6.0 GiB weights, 112 KiB cache/token, plus ~80 KiB/token prefill temporaries):
+#   fits:  64K x batch 1-2, 32K x batch 4, 16K x batch 8      out of memory: 64K x 4, 32K x 8
+sweep:
+  contexts: [1024, 2048, 4096, 8192, 16384, 32768, 65536]
+  batches: [1, 2, 4, 8]
+  decode_tokens: 32
+  trials: 3                 # trial 0 for every point first, then trials 1 and 2
+  max_minutes: 35
+
+bandwidth:
+  size_mb: 2048             # larger than any GPU cache, so it measures DRAM bandwidth
+  iters: 20
+
+needle:
+  contexts: [1024, 2048, 4096, 8192, 16384, 32768, 65536]
+  depths: [0.0, 0.25, 0.5, 0.75, 1.0]
+  samples: 10               # rounds of one prompt per cell; stops early (all cells equal) if the cap is hit
+  max_new_tokens: 20
+  max_minutes: 25
+
+ppl:
+  lengths: [2048, 4096, 8192, 16384, 32768]
+  segments: 8
+  chunk: 256
+  bos: true                 # windows start with BOS like real prompts (sink token); laptop run used false
+  max_minutes: 10
+
+quick:                      # ./run_server.sh --quick : 3-5 minute end-to-end smoke test on the real model
+  sweep: {contexts: [1024, 4096], batches: [1, 2], decode_tokens: 8, trials: 1, max_minutes: 3}
+  bandwidth: {size_mb: 512, iters: 5}
+  needle: {contexts: [1024, 4096], depths: [0.0, 1.0], samples: 1, max_new_tokens: 20, max_minutes: 3}
+  ppl: {lengths: [2048], segments: 1, chunk: 256, bos: true, max_minutes: 2}
