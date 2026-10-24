@@ -18,6 +18,7 @@ from kvstudy.config import load_config
 from kvstudy.deadline import Budget
 from kvstudy.env import env_info, result_env
 from kvstudy.modelio import clean, load_model
+from kvstudy.families import prefix_token_id
 from kvstudy.resultlog import ResultLog
 from kvstudy.workloads.text import perplexity_text
 
@@ -58,7 +59,8 @@ def main():
         return
     model, tok, name, dev = load_model(cfg)
     ids_all = tok(text, add_special_tokens=False, return_tensors="pt").input_ids[0]
-    bos = bool(pp.get("bos", False)) and tok.bos_token_id is not None
+    prefix_id = prefix_token_id(tok, model.config) if pp.get("bos", False) else None
+    bos = prefix_id is not None
     print(f"[ppl] {source}: {len(ids_all)} tokens; BOS at window start: {bos}")
     log = ResultLog(f"{cfg['_results_dir']}/baseline_ppl.jsonl", result_env(info))
     for L in pp["lengths"]:
@@ -71,10 +73,11 @@ def main():
                 break
             seg = ids_all[s * body:(s + 1) * body]
             if bos:
-                seg = torch.cat([torch.tensor([tok.bos_token_id]), seg])
+                seg = torch.cat([torch.tensor([prefix_id]), seg])
             nll, n = chunked_nll(model, seg.unsqueeze(0).to(dev), pp["chunk"])
             log.append(dict(study=STUDY, model=name, policy="full", budget=1.0, context=L, trial=s,
-                            chunk=pp["chunk"], bos=bos, nll=nll, n_tokens=n, ppl=math.exp(nll / n)))
+                            chunk=pp["chunk"], bos=bos, prefix_token_id=prefix_id,
+                            nll=nll, n_tokens=n, ppl=math.exp(nll / n)))
             clean(dev)
         rows = log.find(study=STUDY, context=L)
         if rows:

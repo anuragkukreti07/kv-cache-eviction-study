@@ -6,10 +6,12 @@ import time
 
 import torch
 import transformers
-from transformers import AutoModelForCausalLM, AutoTokenizer, DynamicCache
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, DynamicCache
 
 from kvstudy import attention
 from kvstudy.config import ROOT
+from kvstudy.families import (resolve_dtype, validate_model_config, validate_sequence_length,
+                              validate_run_identity)
 
 MB = 1024 ** 2
 
@@ -59,7 +61,7 @@ def resolve_revision(cfg, name):
 
 def load_model(cfg):
     device = torch.device(cfg.get("device", "cuda"))
-    dtype = getattr(torch, cfg.get("dtype", "float16"))
+    dtype = resolve_dtype(cfg, device)
     names = [cfg["model"]] + list(cfg.get("fallback_models", []))
     if cfg.get("attn_patch", True):
         attention.install()
@@ -70,10 +72,15 @@ def load_model(cfg):
         try:
             rev = resolve_revision(cfg, name)
             cfg["_revision"] = rev
+            if cfg.get("model_family"):
+                model_config = AutoConfig.from_pretrained(name, revision=rev)
+                validate_model_config(model_config, cfg, eviction=bool(cfg.get("eviction")))
+                validate_run_identity(cfg, name, rev)
             tok = AutoTokenizer.from_pretrained(name, revision=rev)
             kw = {"attn_implementation": cfg.get("attn", "sdpa")}
             kw["dtype" if _new_enough_for_dtype_kw() else "torch_dtype"] = dtype
             model = AutoModelForCausalLM.from_pretrained(name, revision=rev, **kw)
+            validate_model_config(model.config, cfg, eviction=bool(cfg.get("eviction")))
             model.to(device).eval()
             print(f"[model] loaded {name} @ {rev} ({next(model.parameters()).dtype}) on {device}")
             return model, tok, name, device
@@ -147,6 +154,9 @@ def greedy_generate(model, input_ids, max_new, dev, eos_ids=None):
     Returns timing (TTFT, per-step decode times) and memory views for the full-cache baseline.
     Memory numbers are relative to what was allocated before the call (weights + inputs).
     """
+    if max_new < 1:
+        raise ValueError("max_new must be positive")
+    validate_sequence_length(model.config, input_ids.shape[1], max_new)
     kw = _logits_kw(model)
     bs = input_ids.shape[0]
     cache = DynamicCache()

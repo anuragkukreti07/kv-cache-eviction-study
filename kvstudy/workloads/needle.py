@@ -16,6 +16,8 @@ class NeedleBuilder:
         self.filler = tok(filler_text, add_special_tokens=False).input_ids
         msgs = [{"role": "user", "content": f"{_MARK}\n\n{QUESTION}"}]
         templ = tok.apply_chat_template(msgs, add_generation_prompt=True, tokenize=False, date_string=FIXED_DATE)
+        if templ.count(_MARK) != 1:
+            raise ValueError("Chat template must preserve exactly one context marker")
         head, tail = templ.split(_MARK)
         self.head = tok(head, add_special_tokens=False).input_ids   # template already contains BOS text
         self.tail = tok(tail, add_special_tokens=False).input_ids
@@ -26,8 +28,10 @@ class NeedleBuilder:
         Each (context, depth, sample) has its own seeded RNG, so a prompt never depends on the order in which
         prompts were built (runs can be interrupted, resumed or reordered and still see identical prompts).
         """
+        if not 0.0 <= depth <= 1.0:
+            raise ValueError("Needle depth must lie between 0 and 1")
         rng = random.Random(f"needle-{self.seed}-{context}-{depth}-{sample}")
-        while True:
+        for _ in range(1000):
             code = rng.randint(1000, 9999)
             needle = self.tok(f" The access code for the blue vault is {code}.\n",
                               add_special_tokens=False).input_ids
@@ -41,6 +45,8 @@ class NeedleBuilder:
             if str(code) in self.tok.decode(seg):   # code must not occur naturally in the filler
                 continue
             break
+        else:
+            raise ValueError("Could not find filler without the sampled code after 1000 attempts")
         k = int(round(depth * n_filler))
         ids = self.head + seg[:k] + needle + seg[k:] + self.tail
         assert len(ids) == context

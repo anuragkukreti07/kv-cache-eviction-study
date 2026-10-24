@@ -42,6 +42,7 @@ def main():
     attn_desc = ("SDPA, flash/mem-efficient kernels only (GQA-aware)" if cfg.get("attn_patch", True)
                  else "SDPA, PyTorch default kernel choice")
     meta = dict(model=name, model_revision=cfg.get("_revision"), attn_desc=attn_desc, dtype=cfg.get("dtype"),
+                model_family=model.config.model_type,
                 vram_fraction=cfg.get("vram_fraction"), weights_bytes=wbytes, kv_bytes_per_token=bpt, layers=L,
                 kv_heads=H, head_dim=d, q_heads=model.config.num_attention_heads,
                 vram_total_bytes=info.get("gpu_vram_bytes", 0), **info)

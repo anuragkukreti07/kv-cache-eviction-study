@@ -63,9 +63,9 @@ def install():
 
 
 @torch.no_grad()
-def selfcheck(device="cuda"):
+def selfcheck(device="cuda", dtype=torch.float16):
     """Numerical check against a plain fp32 reference + peak-memory check for a 4K prefill."""
-    dt = torch.float16
+    dt = dtype
     g = torch.Generator(device="cpu").manual_seed(0)
 
     def rnd(*s):

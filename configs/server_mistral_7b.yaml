@@ -1,0 +1,85 @@
+# Full-cache baseline. Same precision/grid; model sizes differ across families.
+run_name: server_mistral
+model: mistralai/Mistral-7B-Instruct-v0.3
+revision: c170c708c41dac9275d15a8fff4eca08d52bab71
+fallback_models: []
+dtype: float16
+attn: sdpa
+attn_patch: true
+vram_fraction: 0.9
+device: cuda
+seed: 0
+model_check: true
+sweep:
+  contexts:
+  - 1024
+  - 2048
+  - 4096
+  - 8192
+  - 16384
+  batches:
+  - 1
+  - 2
+  - 4
+  - 8
+  decode_tokens: 32
+  trials: 3
+  max_minutes: 35
+bandwidth:
+  size_mb: 2048
+  iters: 20
+needle:
+  contexts:
+  - 1024
+  - 2048
+  - 4096
+  - 8192
+  - 16384
+  depths:
+  - 0.0
+  - 0.25
+  - 0.5
+  - 0.75
+  - 1.0
+  samples: 10
+  max_new_tokens: 20
+  max_minutes: 25
+ppl:
+  lengths:
+  - 2048
+  - 4096
+  - 8192
+  - 16384
+  segments: 8
+  chunk: 256
+  bos: true
+  max_minutes: 10
+quick:
+  sweep:
+    contexts:
+    - 1024
+    batches:
+    - 1
+    decode_tokens: 8
+    trials: 1
+    max_minutes: 3
+  bandwidth:
+    size_mb: 512
+    iters: 5
+  needle:
+    contexts:
+    - 1024
+    depths:
+    - 0.0
+    - 1.0
+    samples: 1
+    max_new_tokens: 20
+    max_minutes: 3
+  ppl:
+    lengths:
+    - 2048
+    segments: 1
+    chunk: 256
+    bos: true
+    max_minutes: 2
+model_family: mistral

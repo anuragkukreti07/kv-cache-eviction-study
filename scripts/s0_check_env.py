@@ -13,6 +13,7 @@ import torch
 
 from kvstudy.config import ROOT, load_config
 from kvstudy.env import env_info
+from kvstudy.families import resolve_dtype, validate_model_config
 
 
 def gpu_processes():
@@ -25,7 +26,7 @@ def gpu_processes():
 
 
 def model_check(cfg):
-    from kvstudy.modelio import greedy_generate, load_model
+    from kvstudy.modelio import _logits_kw, greedy_generate, load_model
     from kvstudy.workloads.needle import NeedleBuilder
     from kvstudy.workloads.text import filler_text
     model, tok, name, dev = load_model(cfg)
@@ -34,7 +35,7 @@ def model_check(cfg):
     s = nb.build(2048, 0.5, 0)
     ids = torch.tensor([s["ids"]], device=dev)
     with torch.no_grad():
-        lg = model(input_ids=ids[:, :512], logits_to_keep=1).logits
+        lg = model(input_ids=ids[:, :512], **_logits_kw(model)).logits
     finite = bool(torch.isfinite(lg).all())
     r = greedy_generate(model, ids, 20, dev)
     ans = tok.decode(r["tokens"][0], skip_special_tokens=True).strip()
@@ -86,18 +87,20 @@ def main():
     du = shutil.disk_usage(ROOT)
     print(f"  disk free        {du.free / 1024**3:.1f} GiB in {ROOT}")
     try:  # real kernel launch (this is where 'no kernel image' errors appear)
-        a = torch.randn(512, 512, device="cuda", dtype=torch.float16)
+        dtype = resolve_dtype(cfg, "cuda")
+        a = torch.randn(512, 512, device="cuda", dtype=dtype)
         torch.cuda.synchronize()
         float((a @ a).float().sum())
-        print("[ok] fp16 matmul on GPU works")
+        print(f"[ok] {dtype} matmul on GPU works")
     except Exception as e:
         print(f"[FAIL] GPU kernel launch failed: {e}")
         ok = False
     try:
         from kvstudy import attention
-        r = attention.selfcheck("cuda")
+        r = attention.selfcheck("cuda", dtype=resolve_dtype(cfg, "cuda"))
+        tolerance = 5e-2 if cfg.get("dtype") == "bfloat16" else 2e-2
         print(f"  attention check  {r}")
-        if r["decode_max_err"] > 2e-2 or r["prefill_max_err"] > 2e-2:
+        if r["decode_max_err"] > tolerance or r["prefill_max_err"] > tolerance:
             print("[FAIL] patched attention disagrees with the reference; do not trust results.")
             ok = False
         elif r.get("patched_peak_mib") is None or r["patched_peak_mib"] > 300 or r["stats"]["fallback_calls"]:
@@ -122,7 +125,8 @@ def main():
             from transformers import AutoConfig
             from kvstudy.modelio import resolve_revision
             rev = resolve_revision(cfg, cfg["model"])   # pinned commit (works offline once prefetched)
-            AutoConfig.from_pretrained(cfg["model"], revision=rev)
+            model_config = AutoConfig.from_pretrained(cfg["model"], revision=rev)
+            validate_model_config(model_config, cfg, eviction=bool(cfg.get("eviction")))
             print(f"[ok] model config reachable: {cfg['model']} @ {str(rev)[:10]}")
         except Exception as e:
             print(f"[FAIL] cannot access {cfg['model']}: {type(e).__name__}")

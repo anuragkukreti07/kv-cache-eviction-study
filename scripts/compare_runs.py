@@ -25,6 +25,8 @@ def read(p):
 def summarize(rd):
     meta = json.loads((rd / "meta.json").read_text())
     row = {"run": rd.name, "GPU": meta.get("gpu"), "model": str(meta.get("model")).split("/")[-1],
+           "family": meta.get("model_family", "unrecorded"), "dtype": meta.get("dtype", "float16 (legacy)"),
+           "model revision": meta.get("model_revision"),
            "weights (GiB)": round(meta["weights_bytes"] / GIB, 2),
            "KV per token (KiB)": round(meta["kv_bytes_per_token"] / 1024, 1)}
     sw = read(rd / "baseline_sweep.jsonl")
@@ -77,6 +79,9 @@ def main():
     for k, r in df.iterrows():
         md += f"| {k} | " + " | ".join("" if (v is None or (isinstance(v, float) and math.isnan(v))) else str(v)
                                        for v in r) + " |\n"
+    md += ("\nDifferent model sizes, tokenizers, and hardware can affect these measurements. "
+           "Cross-family results do not isolate architecture alone. "
+           "Compare eviction against each model's own full-cache reference.\n")
     (res / "comparison.md").write_text("# Baseline runs side by side\n\n" + md, encoding="utf-8")
     print(md)
     print(f"[compare] wrote {res / 'comparison.md'}")

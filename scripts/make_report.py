@@ -107,14 +107,17 @@ def main():
     wb = meta.get("weights_bytes")
     bpt = meta.get("kv_bytes_per_token")
     vram = meta.get("vram_total_bytes") or 0
+    dtype_name = meta.get("dtype") or cfg.get("dtype", "float16")
+    precision = {"float16": "FP16", "bfloat16": "BF16", "float32": "FP32"}.get(dtype_name, dtype_name)
+    element_bytes = {"float16": 2, "bfloat16": 2, "float32": 4}.get(dtype_name, "?")
 
     # ---------------- setup table ----------------
     if meta:
         setup = pd.DataFrame({"Value": [
             f"{meta.get('gpu')} ({vram / GIB:.2f} GiB VRAM, sm_{str(meta.get('gpu_capability', '')).replace('.', '')})",
-            f"{meta.get('model')} (revision {str(meta.get('model_revision'))[:10]})", f"FP16, {meta.get('attn_desc', 'SDPA attention')}, full KV cache (no eviction)",
+            f"{meta.get('model')} (revision {str(meta.get('model_revision'))[:10]})", f"{precision}, {meta.get('attn_desc', 'SDPA attention')}, full KV cache (no eviction)",
             f"{wb / GIB:.2f} GiB", f"{bpt / 1024:.1f} KiB  ({meta['layers']} layers x {meta['kv_heads']} KV heads x "
-            f"{meta['head_dim']} dim x 2 (K,V) x 2 B)",
+            f"{meta['head_dim']} dim x 2 (K,V) x {element_bytes} B)",
             f"torch {meta.get('torch')}, transformers {meta.get('transformers')}, driver {meta.get('driver', '?')}"]},
             index=pd.Index(["GPU", "Model", "Setup", "Weights", "KV cache per token", "Software"], name="Item"))
         sections.append(("Setup", [("html", html_table(setup)), ("md", md_table(setup))]))
@@ -227,7 +230,7 @@ def main():
             takeaways.append(f"WARNING: {st['fallback_calls']} attention calls fell back to PyTorch's default kernel; "
                              "memory/latency may be dominated by S^2 score matrices.")
         err = ok.cache_err_pct.abs().max()
-        takeaways.append(f"KV cache formula check: measured cache bytes match 2 x L x H x d x S x B x 2 B within "
+        takeaways.append(f"KV cache formula check: measured cache bytes match 2 x L x H x d x S x B x {element_bytes} B within "
                          f"{err:.3f}% over {len(ok)} runs (max |error|).")
         rows = []
         for b in batches:
@@ -345,7 +348,7 @@ def main():
         return f'<figure><img src="data:image/png;base64,{b64}" alt="{html.escape(cap)}"><figcaption>{html.escape(cap)}</figcaption></figure>'
 
     who = f"{meta.get('model', '?')} on {meta.get('gpu', '?')}" if meta else ""
-    body, md = [], ["# Baseline: unmodified FP16 full KV cache\n", f"*{who}*\n" if who else ""]
+    body, md = [], [f"# Baseline: unmodified {precision} full KV cache\n", f"*{who}*\n" if who else ""]
     if takeaways:
         body.append("<section><h2>Key numbers</h2><ul>" + "".join(f"<li>{html.escape(t)}</li>" for t in takeaways) + "</ul></section>")
         md.append("## Key numbers\n" + "\n".join(f"- {t}" for t in takeaways) + "\n")
@@ -376,7 +379,7 @@ figure img{{width:100%;height:auto;display:block}}figcaption{{color:#52514e;font
 th,td{{border-bottom:1px solid var(--line);padding:6px 12px;text-align:left;white-space:nowrap}}th{{color:var(--ink2);font-weight:600}}
 li{{margin:4px 0}}
 </style></head><body><main>
-<h1>Baseline: unmodified FP16 full KV cache</h1>
+<h1>Baseline: unmodified {html.escape(precision)} full KV cache</h1>
 <p class="sub"><strong>{html.escape(who)}</strong></p>
 <p class="sub">When Does KV-Cache Eviction Fail? &middot; Step 3 baseline and bottleneck, plus full-cache quality reference.
 Everything here is what eviction policies will be compared against.</p>
