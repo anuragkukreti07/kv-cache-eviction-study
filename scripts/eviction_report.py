@@ -216,6 +216,9 @@ def main():
              f"Family: `{ident.get('model_family', 'unrecorded')}`. Dtype: `{ident.get('model_dtype', 'unrecorded')}`.",
              f"GPU: {ident['environment']['gpu']}. Mode: `{ident['timing_mode']}`.", "",
              "All methods use identical chunked prefill. This full-precision reference is separate from the original monolithic baseline.",
+             "H2O-style uses explicit attention scoring and prunes after each chunk. Recent/sink policies apply retention within each chunk.",
+             "H2O-style shares per-layer selections across heads and batch members. It is an adaptation, not an exact paper reproduction.",
+             "Kernel choice, scoring, and pruning overhead differ. Compare measured latency without attributing differences solely to token selection.",
              "Cache bytes include retained-position metadata. Allocator peaks measure the whole process, including model weights.",
              "No claim of acceleration follows from persistent storage reduction alone.", "",
              "## Coverage", ""]

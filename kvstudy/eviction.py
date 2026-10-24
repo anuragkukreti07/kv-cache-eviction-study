@@ -1,4 +1,4 @@
-"""Full-precision KV caches with physical recent or sink-plus-window retention."""
+"""Full-precision KV caches with physical eviction policies."""
 from dataclasses import dataclass
 from functools import partial
 
@@ -14,8 +14,8 @@ class EvictionSpec:
     sink_tokens: int = 4
 
     def __post_init__(self):
-        if self.policy not in {"full", "recent", "sink_window"}:
-            raise ValueError("policy must be full, recent, or sink_window")
+        if self.policy not in {"full", "recent", "sink_window", "h2o"}:
+            raise ValueError("policy must be full, recent, sink_window, or h2o")
         if self.budget_tokens is not None and self.budget_tokens < 1:
             raise ValueError("budget_tokens must be positive or None")
         if self.sink_tokens < 0:
@@ -84,7 +84,12 @@ class EvictionLayer(DynamicLayer):
 class EvictionDynamicCache(DynamicCache):
     def __init__(self, spec):
         # Skip DynamicCache's config-derived layer selection deliberately.
-        Cache.__init__(self, layer_class_to_replicate=partial(EvictionLayer, spec))
+        if spec.policy == "h2o":
+            from kvstudy.h2o import H2OLayer
+            layer_class = H2OLayer
+        else:
+            layer_class = EvictionLayer
+        Cache.__init__(self, layer_class_to_replicate=partial(layer_class, spec))
         self.spec = spec
 
     @property
@@ -97,6 +102,9 @@ class EvictionDynamicCache(DynamicCache):
 
     def attention_mask(self, count, device, dtype):
         """Explicit 4D additive mask; columns match update()'s returned K/V."""
+        if self.spec.policy == "h2o":
+            # The custom backend creates causal masks from each layer's own positions.
+            return None
         query = torch.arange(self.seen_tokens, self.seen_tokens + count, device=device)
         old = self.retained_positions
         candidates = query if old is None else torch.cat((old, query))
@@ -113,18 +121,30 @@ class EvictionDynamicCache(DynamicCache):
         return mask[None, None, :, :]
 
     def summary(self):
-        kv_bytes = position_bytes = 0
+        kv_bytes = position_bytes = score_bytes = 0
         for layer in self.layers:
             for tensor in (layer.keys, layer.values):
                 if tensor is not None:
                     kv_bytes += tensor.untyped_storage().nbytes()
             if layer.positions is not None:
                 position_bytes += layer.positions.untyped_storage().nbytes()
-        return dict(storage_bytes=kv_bytes, kv_bytes=kv_bytes, metadata_bytes=position_bytes,
-                    total_storage_bytes=kv_bytes + position_bytes,
+            scores = getattr(layer, "scores", None)
+            if scores is not None:
+                score_bytes += scores.untyped_storage().nbytes()
+        result = dict(storage_bytes=kv_bytes, kv_bytes=kv_bytes, metadata_bytes=position_bytes + score_bytes,
+                    total_storage_bytes=kv_bytes + position_bytes + score_bytes,
                     retained_tokens=int(self.get_seq_length()), seen_tokens=self.seen_tokens,
                     policy=self.spec.policy, budget_tokens=self.spec.budget_tokens,
                     sink_tokens=self.spec.sink_tokens)
+        if self.spec.policy == "h2o":
+            result.update(algorithm_label="h2o_style", score_bytes=score_bytes,
+                          recent_tokens=None if self.spec.budget_tokens is None else max(1, self.spec.budget_tokens // 2),
+                          score_updates=sum(layer.score_updates for layer in self.layers),
+                          scored_queries=sum(layer.scored_queries for layer in self.layers),
+                          selection_granularity="after_each_prefill_chunk_and_decode_token",
+                          aggregation="per_layer_mean_batch_and_query_heads",
+                          position_diagnostics="layer_zero_only")
+        return result
 
 
 

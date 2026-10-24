@@ -38,6 +38,10 @@ def load_experiment_config(path, quick=False):
     if cfg.get("fallback_models"):
         raise ValueError("Fallback models would invalidate matched comparisons")
     ratios = cfg["eviction"]["ratios"]
+    policies = cfg["eviction"].get("policies", ["recent", "sink_window"])
+    if (not policies or len(set(policies)) != len(policies)
+            or any(p not in {"recent", "sink_window", "h2o"} for p in policies)):
+        raise ValueError("eviction.policies must contain unique recent, sink_window, or h2o entries")
     if not ratios or any(not 0 < r < 1 for r in ratios) or len(set(ratios)) != len(ratios):
         raise ValueError("eviction.ratios must contain unique fractions strictly between zero and one")
     sink = cfg["eviction"]["sink_tokens"]
@@ -70,8 +74,9 @@ def methods(cfg, context):
     label = "full_fp16" if cfg["dtype"] == "float16" else "full_bfloat16"
     base = [dict(method=label, policy="full", ratio=1.0, budget_tokens=None)]
     for ratio in cfg["eviction"]["ratios"]:
-        for policy in ("recent", "sink_window"):
-            base.append(dict(method=f"{policy}_r{ratio:g}", policy=policy,
+        for policy in cfg["eviction"].get("policies", ["recent", "sink_window"]):
+            label = "h2o_style" if policy == "h2o" else policy
+            base.append(dict(method=f"{label}_r{ratio:g}", policy=policy,
                              ratio=ratio, budget_tokens=max(1, int(context * ratio))))
     return base
 
@@ -258,7 +263,8 @@ def main():
             interrupted = True
             return
         row = dict(key=key, stage=stage, **coordinates, **method,
-                   fingerprint=fingerprint, timing_mode="chunked_prefill_matched")
+                   fingerprint=fingerprint, timing_mode="chunked_prefill_matched",
+                   attention_backend="explicit_h2o_style" if method["policy"] == "h2o" else cfg.get("attn", "sdpa"))
         attention_before = dict(attention.STATS)
         try:
             clean(dev)

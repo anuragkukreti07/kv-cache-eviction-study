@@ -1,4 +1,4 @@
-# Eviction only: full cache, recent-token and sink-plus-window retention.
+# Eviction only: recent, sink-window, and attention-based H2O-style retention.
 # FP16 matches the shared grid. Model sizes differ across families.
 run_name: eviction_qwen
 model: Qwen/Qwen2.5-3B-Instruct
@@ -85,6 +85,7 @@ quick:
     bos: true
     max_minutes: 2
   eviction:
+    policies: [recent, sink_window, h2o]
     ratios:
     - 0.5
     - 0.05
@@ -92,6 +93,7 @@ quick:
     prefill_chunk: 256
 model_family: qwen2
 eviction:
+  policies: [recent, sink_window, h2o]
   ratios:
   - 0.5
   - 0.25

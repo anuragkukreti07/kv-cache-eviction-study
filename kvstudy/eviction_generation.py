@@ -28,6 +28,11 @@ def _forward(model, ids, cache, **kwargs):
                                 device=ids.device)[None, :]
     dtype = next(model.parameters()).dtype
     mask = cache.attention_mask(count, ids.device, dtype)
+    if cache.spec.policy == "h2o":
+        from kvstudy.h2o import scoped_h2o_attention
+        with scoped_h2o_attention(model, cache):
+            return model(input_ids=ids, position_ids=position_ids, attention_mask=mask,
+                         past_key_values=cache, use_cache=True, **kwargs)
     return model(input_ids=ids, position_ids=position_ids, attention_mask=mask,
                  past_key_values=cache, use_cache=True, **kwargs)
 

@@ -3,7 +3,7 @@
 ## Multi-family extension on `sbidisha_dev`
 
 The extension adds Qwen2.5-3B and Mistral-7B full-cache baselines alongside the existing LLaMA baseline.
-It adds physical recent-token and sink-plus-window eviction at 50%, 25%, 10%, and 5% retention.
+It adds recent-token, sink-plus-window, and H2O-style attention eviction at 50%, 25%, 10%, and 5% retention.
 FP16 is the default. BF16 is supported on compatible CUDA hardware.
 See [MODEL_STUDY.md](MODEL_STUDY.md) for setup, GPU checks, commands, and comparison limits.
 The original LLaMA configurations and launchers remain available below.

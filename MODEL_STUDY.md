@@ -19,20 +19,52 @@ Its supplied server configurations targeted LLaMA models.
 | Precision | FP16 defaults; explicit BF16 hardware validation |
 | Model safety | Context checks and rejection of active native sliding windows during eviction |
 | Quality inputs | Chat-template handling and explicit perplexity prefix policy |
-| Eviction | Physical recent-token and sink-plus-window retention |
+| Eviction | Physical recent-token, sink-plus-window, and H2O-style attention retention |
 | Budgets | 50%, 25%, 10%, and 5% of prompt/window length |
 | Matched reference | Full cache using the same chunked prefill as eviction |
 | Results | Durable measurements, resume identity checks, paired reports, plots, and failure tables |
 | Validation | Tiny CPU tests and a download-free CUDA check for all three families |
 
-Full eviction runs use nine methods: one full-cache reference and eight policy/budget combinations.
-Quick runs use five methods: full cache, plus both policies at 50% and 5%.
+Full eviction runs use 13 methods: one full-cache reference and 12 policy/budget combinations.
+Quick runs use seven methods: full cache, plus three policies at 50% and 5%.
 Sink-plus-window keeps four initial tokens. Remaining slots retain recent tokens.
 Budget tokens equal `floor(context_length * ratio)`. Budgets stay fixed during decoding.
 Absolute token positions remain unchanged after eviction.
 Persistent cache storage stays bounded. Temporary chunks can increase peak memory.
 The implementation uses Python cache operations and explicit attention masks.
 It does not claim kernel-level optimization or guaranteed acceleration.
+
+## Attention-based policy
+
+H2O-style retention adds the missing comparison between attention importance and recency.
+Each layer accumulates causal attention probabilities for its retained tokens.
+Scores average query heads and batch members. All heads within a layer share selected positions.
+Half the budget protects recent tokens, rounded down with at least one recent slot.
+The remaining slots retain older tokens with the largest accumulated scores.
+Equal scores prefer earlier positions. Selected positions stay in chronological order.
+The policy preserves FP16 or BF16 K/V. Its score metadata uses FP32 and counts toward storage.
+
+This is a chunked H2O-style adaptation, not an exact reproduction of the published algorithm.
+It prunes after each prefill chunk and each decoding token.
+The recent and sink policies apply their retention masks within each prefill chunk.
+That difference can affect quality. Keep the configured chunk size in reported results.
+H2O-style uses explicit attention probabilities. The other methods use the configured attention backend.
+Measured timing includes score collection, pruning, and backend switching.
+Kernel and pruning differences prevent attributing latency differences solely to token selection.
+Layer-zero retention diagnostics do not describe every layer's selected tokens.
+
+SnapKV and PyramidKV are not implemented in this branch.
+SnapKV uses prompt observation windows and per-head token selection.
+PyramidKV also allocates different budgets across layers.
+Those methods need separate lifecycle and allocation checks before meaningful comparisons.
+H2O-style completes the initial three-policy comparison without adding quantization.
+No policy is claimed to perform best before the GPU experiments.
+
+The three eviction YAMLs select policies through `eviction.policies`.
+Allowed values are `recent`, `sink_window`, and `h2o`.
+Quick configurations contain their own policy list. Update both lists when changing a run.
+Result labels use `h2o_style_r0.05`, for example, to identify the adaptation.
+Use a new output directory after this code change. Older manifests reject the changed implementation.
 
 ## Configurations
 

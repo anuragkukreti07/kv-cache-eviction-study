@@ -22,15 +22,27 @@ class ExperimentConfigTests(unittest.TestCase):
             self.assertEqual(configs[0][key], configs[1][key])
             self.assertEqual(configs[1][key], configs[2][key])
         self.assertIn(0.05, configs[0]["eviction"]["ratios"])
-        self.assertEqual(len(runner.methods(configs[0], 1024)), 9)
+        self.assertEqual(configs[0]["eviction"]["policies"], ["recent", "sink_window", "h2o"])
+        self.assertEqual(len(runner.methods(configs[0], 1024)), 13)
 
     def test_quick_methods_include_five_percent(self):
         cfg = runner.load_experiment_config(ROOT / "configs/eviction_llama.yaml", quick=True)
         methods = runner.methods(cfg, 1024)
-        self.assertEqual(len(methods), 5)
-        self.assertEqual(methods[-1]["budget_tokens"], 51)
-        self.assertEqual(methods[-1]["policy"], "sink_window")
-        self.assertEqual(methods[-1]["ratio"], 0.05)
+        self.assertEqual(len(methods), 7)
+        for policy in ("recent", "sink_window", "h2o"):
+            entry = next(m for m in methods if m["policy"] == policy and m["ratio"] == 0.05)
+            self.assertEqual(entry["budget_tokens"], 51)
+        self.assertEqual(methods[-1]["method"], "h2o_style_r0.05")
+
+    def test_unknown_or_quantized_policy_is_rejected(self):
+        import yaml
+        cfg = runner.load_experiment_config(ROOT / "configs/eviction_llama.yaml")
+        cfg["eviction"]["policies"] = ["int8"]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "invalid.yaml"
+            path.write_text(yaml.safe_dump(cfg))
+            with self.assertRaisesRegex(ValueError, "eviction.policies"):
+                runner.load_experiment_config(path)
 
     def test_bfloat_reference_is_named_and_paired(self):
         cfg = {"dtype": "bfloat16", "eviction": {"ratios": [0.05]}}

@@ -45,7 +45,7 @@ def main():
                                 for s in range(0, 64, 16)], dim=1)
             torch.testing.assert_close(actual, expected, atol=tolerance, rtol=tolerance)
         records = {}
-        for policy in ("full", "recent", "sink_window"):
+        for policy in ("full", "recent", "sink_window", "h2o"):
             spec = EvictionSpec(policy=policy, budget_tokens=None if policy == "full" else 8, sink_tokens=2)
             result = evicting_generate(model, ids, 4, dev, spec, prefill_chunk=16)
             loss = eviction_nll(model, ids, 16, spec)
@@ -54,6 +54,9 @@ def main():
                 assert result["cache_len"] == 8
                 if policy == "sink_window":
                     assert result["retained_positions"][:2] == [0, 1]
+                if policy == "h2o":
+                    assert result["cache"]["score_bytes"] > 0
+                    assert result["cache"]["score_updates"] > 0
             assert result["tokens"].shape == (1, 4)
             records[policy] = dict(cache=result["cache"], nll=loss["nll"], scored_tokens=loss["n"])
         report["families"][family] = dict(status="passed", methods=records)
