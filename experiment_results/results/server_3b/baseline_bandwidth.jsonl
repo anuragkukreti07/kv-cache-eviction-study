@@ -1,0 +1,1 @@
+{"study": "B3_bandwidth", "read_gbs": 744.7272669106476, "copy_gbs": 651.9981491350334, "size_mb": 2048, "trial": 0, "gpu": "NVIDIA L40S", "torch": "2.11.0+cu128", "transformers": "5.19.0"}

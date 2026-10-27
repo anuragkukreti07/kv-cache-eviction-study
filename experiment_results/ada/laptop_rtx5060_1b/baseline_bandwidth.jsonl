@@ -1,0 +1,1 @@
+{"study": "B3_bandwidth", "read_gbs": 348.10752094032756, "copy_gbs": 314.20360217691126, "size_mb": 1024, "trial": 0, "gpu": "NVIDIA GeForce RTX 5060 Laptop GPU", "torch": "2.11.0+cu128", "transformers": "5.19.0"}

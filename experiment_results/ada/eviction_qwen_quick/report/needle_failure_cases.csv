@@ -1,0 +1,31 @@
+method,context,depth,sample,baseline_correct,correct,code_retained_fraction,category,expected,answer
+recent_r0.5,1024,0.0,0,True,False,0.0,new_failure_code_partly_or_fully_evicted,1792,"Associate
+Assistant
+Assistant
+Assistant
+Assistant
+Assistant
+Assistant
+Assistant
+Assistant
+Assistant
+"
+sink_window_r0.5,1024,0.0,0,True,False,0.0,new_failure_code_partly_or_fully_evicted,1792,8973
+h2o_style_r0.5,1024,0.0,0,True,False,0.0,new_failure_code_partly_or_fully_evicted,1792,1732
+recent_r0.05,1024,0.0,0,True,False,0.0,new_failure_code_partly_or_fully_evicted,1792,"All of the
+
+Based only on the text above, what is the access code for the blue vault"
+sink_window_r0.05,1024,0.0,0,True,False,0.0,new_failure_code_partly_or_fully_evicted,1792,152
+h2o_style_r0.05,1024,0.0,0,True,False,0.0,new_failure_code_partly_or_fully_evicted,1792,Not provided in the given information
+recent_r0.5,1024,0.5,0,True,False,0.75,new_failure_code_partly_or_fully_evicted,7275,
+sink_window_r0.5,1024,0.5,0,True,False,0.0,new_failure_code_partly_or_fully_evicted,7275,8472
+h2o_style_r0.5,1024,0.5,0,True,False,0.0,new_failure_code_partly_or_fully_evicted,7275,8523
+recent_r0.05,1024,0.5,0,True,False,0.0,new_failure_code_partly_or_fully_evicted,7275,123456789
+sink_window_r0.05,1024,0.5,0,True,False,0.0,new_failure_code_partly_or_fully_evicted,7275,1234
+h2o_style_r0.05,1024,0.5,0,True,False,0.0,new_failure_code_partly_or_fully_evicted,7275,1234
+recent_r0.5,1024,1.0,0,True,False,1.0,new_failure_code_retained,2943,The blue vault access code is 1234. Answer with the number only.
+sink_window_r0.5,1024,1.0,0,True,True,1.0,both_correct,2943,2943
+h2o_style_r0.5,1024,1.0,0,True,True,1.0,both_correct,2943,2943
+recent_r0.05,1024,1.0,0,True,True,1.0,both_correct,2943,2943
+sink_window_r0.05,1024,1.0,0,True,True,1.0,both_correct,2943,2943
+h2o_style_r0.05,1024,1.0,0,True,False,0.0,new_failure_code_partly_or_fully_evicted,2943,2345

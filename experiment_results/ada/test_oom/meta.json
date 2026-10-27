@@ -1,0 +1,28 @@
+{
+  "model": "tests/tiny_llama",
+  "model_revision": null,
+  "attn_desc": "SDPA, flash/mem-efficient kernels only (GQA-aware)",
+  "dtype": "float32",
+  "model_family": "llama",
+  "vram_fraction": null,
+  "weights_bytes": 449792,
+  "kv_bytes_per_token": 512,
+  "layers": 2,
+  "kv_heads": 2,
+  "head_dim": 16,
+  "q_heads": 4,
+  "vram_total_bytes": 11707809792,
+  "torch": "2.11.0+cu126",
+  "transformers": "5.19.0",
+  "python": "3.10.12",
+  "os": "Linux-5.15.0-194-generic-x86_64-with-glibc2.35",
+  "gpu": "NVIDIA GeForce GTX 1080 Ti",
+  "gpu_vram_bytes": 11707809792,
+  "gpu_capability": "6.1",
+  "cuda": "12.6",
+  "driver": "570.211.01",
+  "attention_stats": {
+    "restricted_calls": 240,
+    "fallback_calls": 0
+  }
+}

@@ -20,3 +20,4 @@ tests/tiny_llama/
 .env
 *.pem
 *.key
+.DS_Store

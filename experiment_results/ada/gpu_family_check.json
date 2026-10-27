@@ -1,0 +1,231 @@
+{
+  "dtype": "float16",
+  "gpu": "NVIDIA GeForce GTX 1080 Ti",
+  "torch": "2.11.0+cu126",
+  "families": {
+    "llama": {
+      "status": "passed",
+      "methods": {
+        "full": {
+          "cache": {
+            "storage_bytes": 34304,
+            "kv_bytes": 34304,
+            "metadata_bytes": 1072,
+            "total_storage_bytes": 35376,
+            "retained_tokens": 67,
+            "seen_tokens": 67,
+            "policy": "full",
+            "budget_tokens": null,
+            "sink_tokens": 2
+          },
+          "nll": 310.71143341064453,
+          "scored_tokens": 63
+        },
+        "recent": {
+          "cache": {
+            "storage_bytes": 4096,
+            "kv_bytes": 4096,
+            "metadata_bytes": 128,
+            "total_storage_bytes": 4224,
+            "retained_tokens": 8,
+            "seen_tokens": 67,
+            "policy": "recent",
+            "budget_tokens": 8,
+            "sink_tokens": 2
+          },
+          "nll": 308.6535949707031,
+          "scored_tokens": 63
+        },
+        "sink_window": {
+          "cache": {
+            "storage_bytes": 4096,
+            "kv_bytes": 4096,
+            "metadata_bytes": 128,
+            "total_storage_bytes": 4224,
+            "retained_tokens": 8,
+            "seen_tokens": 67,
+            "policy": "sink_window",
+            "budget_tokens": 8,
+            "sink_tokens": 2
+          },
+          "nll": 309.02252197265625,
+          "scored_tokens": 63
+        },
+        "h2o": {
+          "cache": {
+            "storage_bytes": 4096,
+            "kv_bytes": 4096,
+            "metadata_bytes": 192,
+            "total_storage_bytes": 4288,
+            "retained_tokens": 8,
+            "seen_tokens": 67,
+            "policy": "h2o",
+            "budget_tokens": 8,
+            "sink_tokens": 2,
+            "algorithm_label": "h2o_style",
+            "score_bytes": 64,
+            "recent_tokens": 4,
+            "score_updates": 14,
+            "scored_queries": 134,
+            "selection_granularity": "after_each_prefill_chunk_and_decode_token",
+            "aggregation": "per_layer_mean_batch_and_query_heads",
+            "position_diagnostics": "layer_zero_only"
+          },
+          "nll": 309.5591125488281,
+          "scored_tokens": 63
+        }
+      }
+    },
+    "qwen2": {
+      "status": "passed",
+      "methods": {
+        "full": {
+          "cache": {
+            "storage_bytes": 34304,
+            "kv_bytes": 34304,
+            "metadata_bytes": 1072,
+            "total_storage_bytes": 35376,
+            "retained_tokens": 67,
+            "seen_tokens": 67,
+            "policy": "full",
+            "budget_tokens": null,
+            "sink_tokens": 2
+          },
+          "nll": 304.43951416015625,
+          "scored_tokens": 63
+        },
+        "recent": {
+          "cache": {
+            "storage_bytes": 4096,
+            "kv_bytes": 4096,
+            "metadata_bytes": 128,
+            "total_storage_bytes": 4224,
+            "retained_tokens": 8,
+            "seen_tokens": 67,
+            "policy": "recent",
+            "budget_tokens": 8,
+            "sink_tokens": 2
+          },
+          "nll": 302.8505401611328,
+          "scored_tokens": 63
+        },
+        "sink_window": {
+          "cache": {
+            "storage_bytes": 4096,
+            "kv_bytes": 4096,
+            "metadata_bytes": 128,
+            "total_storage_bytes": 4224,
+            "retained_tokens": 8,
+            "seen_tokens": 67,
+            "policy": "sink_window",
+            "budget_tokens": 8,
+            "sink_tokens": 2
+          },
+          "nll": 303.5787048339844,
+          "scored_tokens": 63
+        },
+        "h2o": {
+          "cache": {
+            "storage_bytes": 4096,
+            "kv_bytes": 4096,
+            "metadata_bytes": 192,
+            "total_storage_bytes": 4288,
+            "retained_tokens": 8,
+            "seen_tokens": 67,
+            "policy": "h2o",
+            "budget_tokens": 8,
+            "sink_tokens": 2,
+            "algorithm_label": "h2o_style",
+            "score_bytes": 64,
+            "recent_tokens": 4,
+            "score_updates": 14,
+            "scored_queries": 134,
+            "selection_granularity": "after_each_prefill_chunk_and_decode_token",
+            "aggregation": "per_layer_mean_batch_and_query_heads",
+            "position_diagnostics": "layer_zero_only"
+          },
+          "nll": 304.1422424316406,
+          "scored_tokens": 63
+        }
+      }
+    },
+    "mistral": {
+      "status": "passed",
+      "methods": {
+        "full": {
+          "cache": {
+            "storage_bytes": 34304,
+            "kv_bytes": 34304,
+            "metadata_bytes": 1072,
+            "total_storage_bytes": 35376,
+            "retained_tokens": 67,
+            "seen_tokens": 67,
+            "policy": "full",
+            "budget_tokens": null,
+            "sink_tokens": 2
+          },
+          "nll": 310.71143341064453,
+          "scored_tokens": 63
+        },
+        "recent": {
+          "cache": {
+            "storage_bytes": 4096,
+            "kv_bytes": 4096,
+            "metadata_bytes": 128,
+            "total_storage_bytes": 4224,
+            "retained_tokens": 8,
+            "seen_tokens": 67,
+            "policy": "recent",
+            "budget_tokens": 8,
+            "sink_tokens": 2
+          },
+          "nll": 308.6535949707031,
+          "scored_tokens": 63
+        },
+        "sink_window": {
+          "cache": {
+            "storage_bytes": 4096,
+            "kv_bytes": 4096,
+            "metadata_bytes": 128,
+            "total_storage_bytes": 4224,
+            "retained_tokens": 8,
+            "seen_tokens": 67,
+            "policy": "sink_window",
+            "budget_tokens": 8,
+            "sink_tokens": 2
+          },
+          "nll": 309.02252197265625,
+          "scored_tokens": 63
+        },
+        "h2o": {
+          "cache": {
+            "storage_bytes": 4096,
+            "kv_bytes": 4096,
+            "metadata_bytes": 192,
+            "total_storage_bytes": 4288,
+            "retained_tokens": 8,
+            "seen_tokens": 67,
+            "policy": "h2o",
+            "budget_tokens": 8,
+            "sink_tokens": 2,
+            "algorithm_label": "h2o_style",
+            "score_bytes": 64,
+            "recent_tokens": 4,
+            "score_updates": 14,
+            "scored_queries": 134,
+            "selection_granularity": "after_each_prefill_chunk_and_decode_token",
+            "aggregation": "per_layer_mean_batch_and_query_heads",
+            "position_diagnostics": "layer_zero_only"
+          },
+          "nll": 309.5591125488281,
+          "scored_tokens": 63
+        }
+      }
+    }
+  },
+  "attention_stats": {
+    "restricted_calls": 228,
+    "fallback_calls": 0
+  },
+  "note": "Tiny random models check correctness. Real checkpoint quality and performance require separate experiments."
+}

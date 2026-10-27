@@ -1,0 +1,131 @@
+{
+  "fingerprint": "4d38ec41937f7d18de23574cd53551f855554975604ba5771b73494d75761f53",
+  "identity": {
+    "config": {
+      "_revision": "aa8e72537993ba99e69dfaafa59ed015b17504d1",
+      "attn": "sdpa",
+      "attn_patch": true,
+      "bandwidth": {
+        "iters": 20,
+        "size_mb": 2048
+      },
+      "device": "cuda",
+      "dtype": "float16",
+      "eviction": {
+        "policies": [
+          "recent",
+          "sink_window",
+          "h2o"
+        ],
+        "prefill_chunk": 256,
+        "ratios": [
+          0.5,
+          0.25,
+          0.1,
+          0.05
+        ],
+        "sink_tokens": 4
+      },
+      "fallback_models": [],
+      "model": "Qwen/Qwen2.5-3B-Instruct",
+      "model_check": true,
+      "model_family": "qwen2",
+      "needle": {
+        "contexts": [
+          1024,
+          2048,
+          4096
+        ],
+        "depths": [
+          0.0,
+          0.25,
+          0.5,
+          0.75,
+          1.0
+        ],
+        "max_minutes": 300,
+        "max_new_tokens": 20,
+        "samples": 20
+      },
+      "ppl": {
+        "bos": true,
+        "chunk": 256,
+        "lengths": [
+          1024,
+          2048,
+          4096
+        ],
+        "max_minutes": 90,
+        "segments": 4
+      },
+      "quick_mode": false,
+      "revision": "aa8e72537993ba99e69dfaafa59ed015b17504d1",
+      "run_name": "eviction_qwen_1080ti_b1_v1",
+      "seed": 0,
+      "sweep": {
+        "batches": [
+          1
+        ],
+        "contexts": [
+          1024,
+          2048,
+          4096
+        ],
+        "decode_tokens": 32,
+        "max_minutes": 60,
+        "trials": 3
+      },
+      "vram_fraction": 0.9
+    },
+    "dataset": {
+      "needle_sha": "cd05d0d5bc3b011ae7e22ebd538cebcd66d35f39c5c13310a43d205d1d10b30a",
+      "needle_source": "wikitext-2-raw-v1 (test, local copy)",
+      "ppl_sha": "696cca6b65a171b0a358a4be6732cdfdf2dd6164a32e20fd70e3c13fc4dfae83",
+      "ppl_source": "wikitext-2-raw-v1 (test, local copy)"
+    },
+    "environment": {
+      "capability": [
+        6,
+        1
+      ],
+      "gpu": "NVIDIA GeForce GTX 1080 Ti",
+      "torch": "2.11.0+cu126",
+      "total_memory": 11707809792,
+      "transformers": "5.19.0"
+    },
+    "memory_mode": "persistent_cache_plus_metadata_and_allocator_peaks",
+    "model": "Qwen/Qwen2.5-3B-Instruct",
+    "model_dtype": "torch.float16",
+    "model_family": "qwen2",
+    "prefix_policy": {
+      "source": "model_config",
+      "token_id": 151643
+    },
+    "profile": false,
+    "revision": "aa8e72537993ba99e69dfaafa59ed015b17504d1",
+    "source_hashes": {
+      "kvstudy/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "kvstudy/attention.py": "69c0c2bbfb8e4cf51753dad10e7fcc6988a880f98baef501e717b07b8cc3e4f2",
+      "kvstudy/budget.py": "0c46d4de1134a39848949e056bff87c0b413edaf3f3d5a448b50dd6d283f966f",
+      "kvstudy/config.py": "6fc1f5f0b3fedbde5ae67b4d79a0934a22c5949ad55641a8fcc6179dcee84b33",
+      "kvstudy/deadline.py": "50da6bc1a8db3ba322f3311355f949e0d9e3caf48a163e74d8a9d3c983bb24a0",
+      "kvstudy/env.py": "b51015bb077120a1a5d9a1613feca75dee4b46f46ec3a7d603b15a194ee865ac",
+      "kvstudy/eviction.py": "942ccce7f8ed1454f98d744659a9c0a27dc9badbcfa60d35f9bda80d035c37d7",
+      "kvstudy/eviction_generation.py": "d6bf1ecb934ff17a81cb2dc7546f3dae4b2bbb182d46dceb1778e2579a9b398f",
+      "kvstudy/families.py": "58903acb83370e74e8f0e83eafa3a0e468a15a62f676f16c98553ee46bbf2a2a",
+      "kvstudy/h2o.py": "fd0815302b6dee3aae55592e6b7c0969e9bd780e3c3c7f0bc3a7170e82429769",
+      "kvstudy/modelio.py": "48366cd7000bf8b9910ab93698f603cdee6210f39b8c531df296b8f6d9afd5b8",
+      "kvstudy/resultlog.py": "4368fa19d8e0febc985120b7d60b4af2e0c4164c7dc9de5df05392e98cbf8fcb",
+      "kvstudy/workloads/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "kvstudy/workloads/needle.py": "666294900048b414ad8aba37b50024237b7b2c34a13b629f61ce4cfcf5124c2e",
+      "kvstudy/workloads/text.py": "59f6449f3b737efdbea0c83bc58b5b7778fb2e34608ec3d8485fff1b6aa9ecc9",
+      "scripts/run_eviction.py": "dafe44e4f56d45734b16c4e053f540077781c22b1c8ea815469d8e2be3a7ae1a"
+    },
+    "stages": [
+      "sweep",
+      "needle",
+      "ppl"
+    ],
+    "timing_mode": "chunked_prefill_matched"
+  }
+}

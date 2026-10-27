@@ -1,0 +1,22 @@
+{
+  "complete": true,
+  "elapsed_seconds": 151.4756410580594,
+  "expected": {
+    "needle": 21,
+    "ppl": 7,
+    "sweep": 7
+  },
+  "note": "Time limit is checked between cases; one case can exceed the remaining budget. OOM rows are attempted measurements, not successes.",
+  "recorded": {
+    "needle": 21,
+    "ppl": 7,
+    "sweep": 7
+  },
+  "stage_budget_seconds": {
+    "needle": 197.88495205957443,
+    "ppl": 131.9233013730496,
+    "sweep": 329.80825343262404
+  },
+  "time_budget_reached": false,
+  "unexpected_errors": 0
+}

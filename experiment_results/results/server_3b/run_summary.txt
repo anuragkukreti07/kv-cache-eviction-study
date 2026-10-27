@@ -1,0 +1,8 @@
+config configs/server_3b.yaml
+  env        ok                   0.2 min
+  sweep      ok                   5.1 min
+  bandwidth  ok                   0.1 min
+  needle     ok                  10.7 min
+  ppl        ok                   1.8 min
+  report     ok                   0.1 min
+  total 17.9 min
