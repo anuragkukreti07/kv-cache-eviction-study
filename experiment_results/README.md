@@ -26,5 +26,3 @@ Tiny-model checks do not establish their real-checkpoint quality or performance.
 Keep older LLaMA baselines separate from the new Qwen timing results because hardware and models differ.
 H2O-style is an adaptation with different attention and pruning operations.
 Cache-storage reduction does not imply the same reduction in total GPU memory.
-
-Local log files and macOS system files are excluded from Git.
